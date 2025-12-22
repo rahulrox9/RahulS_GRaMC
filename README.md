@@ -58,10 +58,10 @@ To ensure data flows automatically between stages, your folder should look like 
 
 ```text
 My_EBSD_Project/
-├── DataFiles/          # [Input] Place raw .ctf files here
+├── DataFiles/          # [Input] *_clean.ctf files are found here
 ├── checkpoints/        # [Shared] Auto-generated intermediate saves
 ├── exports/            # [Shared] Auto-generated outputs
-│   ├── MAPClean/       # Stage 1 Outputs
+│   ├── MAPClean/       # Stage 1 Outputs (MAPClean)
 │   ├── GrainClean/     # Stage 2 Outputs (GRaMC)
 │   └── Textures/       # Stage 3 Outputs (GRaFT)
 ├── MAPClean.m          # (Stage 1) Pixel-level cleaning
