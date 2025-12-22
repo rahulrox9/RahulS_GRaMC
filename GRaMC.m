@@ -20,7 +20,6 @@
 %
 % Author: Rahul Subbaraman 
 % Date: December 2025
-% License: GPLv3
 % =========================================================================
 
 clc; clear; close all;
@@ -132,7 +131,6 @@ for fi = 1:numel(fileList)
         fprintf('\n[STEP 2] Computing Twin Merges (Anorthite Laws)...\n');
         gB = ogGrains.boundary;
         
-        % [Image of Twin Boundary Identification]
         % Define Twin Laws (Configured for Anorthite)
         twinLaws = {
             {'Albite',    orientation.byAxisAngle(vector3d(0,1,0), 180*degree, ebsd_clean.CS), 5*degree},
@@ -195,4 +193,104 @@ for fi = 1:numel(fileList)
         plotGrainMaps(fakeIncRemGrains, phaseExportPath, sampleName, '03_FakeIncFix');
     else
         checkExists(incFile, 'STEP 3');
-        S =
+        S = load(incFile, 'fakeIncRemGrains', 'parentMap', 'filePath');
+        fakeIncRemGrains = S.fakeIncRemGrains;
+        parentMap = S.parentMap;
+        fprintf('✔ [STEP 3] Loaded checkpoint: %d grains.\n', fakeIncRemGrains.length);
+    end
+
+    %% --- STEP 4: Background Selection (Matrix Removal) ---
+    if run_bgRemoval
+        fprintf('\n[STEP 4] Isolating Large Grains (Background Selection > %d µm)...\n', params.bgSizeThres);
+        [isIncl, ~] = fakeIncRemGrains.isInclusion;
+        stepSize = (max(ebsd_clean.x(:)) - min(ebsd_clean.x(:))) / (ebsd.size(2) - 1);
+        
+        % Select Large Grains (The "Background" or Main Phase)
+        sizeMask = fakeIncRemGrains.grainSize > ceil(params.bgSizeThres / stepSize);
+        bgMask = sizeMask & ~isIncl; % Must be large and not an inclusion
+        
+        % NOTE: 'bgRemGrains' here refers to the retained large grains
+        bgRemGrains = fakeIncRemGrains(bgMask);
+        fprintf('  -> Retained %d large grains.\n', bgRemGrains.length);
+        
+        save(bgFile, 'bgRemGrains', 'filePath');
+        fprintf('✔ Checkpoint saved: %s\n', bgFile);
+        plotGrainMaps(bgRemGrains, phaseExportPath, sampleName, '04_FinalSelection');
+    else
+        checkExists(bgFile, 'STEP 4');
+        S = load(bgFile, 'bgRemGrains', 'filePath');
+        bgRemGrains = S.bgRemGrains;
+        fprintf('✔ [STEP 4] Loaded checkpoint: %d grains.\n', bgRemGrains.length);
+    end
+
+    %% --- STEP 5: Final Output ---
+    if run_Final 
+        finalGrains = bgRemGrains;
+        save(FinalFile, 'finalGrains', 'filePath');
+        fprintf('\n[FINAL] Grains saved to: %s\n', FinalFile);
+    end
+    
+    diary off;
+end
+
+%% ================= HELPER FUNCTIONS =================
+
+function checkExists(fileP, stepName)
+    if ~exist(fileP, 'file')
+        error('%s disabled but checkpoint file missing: %s', stepName, fileP);
+    end
+end
+
+function [mergedGrains, parentId] = mergeGrainsAndComputeGOS(grains, gidpair)
+% MERGEGRAINSANDCOMPUTEGOS Merges grains and recalculates properties.
+    % 1. Merge grains
+    [mergedGrains, parentId] = merge(grains, gidpair);
+    
+    % 2. Parent Orientation: Assign orientation of largest child grain
+    [~, sortIdx] = sort(grains.area, 'descend');
+    sortedParentId = parentId(sortIdx);
+    [uParents, uIdx] = unique(sortedParentId, 'stable');
+    bestChildIdx = sortIdx(uIdx);
+    
+    newOri = mergedGrains.meanOrientation;  
+    newOri(uParents) = grains.meanOrientation(bestChildIdx);
+    mergedGrains.meanOrientation = newOri;
+    
+    % 3. Parent GOS: Area-weighted average
+    weightedSum = accumarray(parentId, grains.GOS .* grains.area);
+    totalArea   = accumarray(parentId, grains.area);
+    mergedGrains.prop.GOS = weightedSum ./ totalArea;
+end
+
+function plotGrainMaps(grains, exportPath, sampleName, keyWord)    
+    global params
+    % 1. Boundaries
+    fBound = figure('Visible','off');
+    plot(grains.boundary, 'lineColor','k'); axis equal tight;
+    savePNG(fBound, sprintf('%s_%s_Boundaries', sampleName, keyWord), exportPath);
+    
+    % 2. GOS
+    fGOS = figure('Visible','off');
+    plot(grains, grains.prop.GOS./degree, 'backgroundColor','k');
+    mtexColorbar; colormap(gca, flipud(magma));
+    setColorRange([0 max(grains.prop.GOS./degree)]); axis equal tight;
+    savePNG(fGOS, sprintf('%s_%s_GOS', sampleName, keyWord), exportPath);
+    
+    % 3. IPF (Z-direction)
+    ipfKey = ipfColorKey(grains);
+    ipfKey.inversePoleFigureDirection = vector3d.Z;
+    colors = ipfKey.orientation2color(grains.meanOrientation);
+    fIPF = figure('Visible','off');
+    plot(grains, colors);
+    hold on; plot(grains.boundary, 'lineColor','k', 'lineWidth',1); hold off;
+    axis equal tight;
+    savePNG(fIPF, sprintf('%s_%s_IPF', sampleName, keyWord), exportPath);
+end
+
+function savePNG(figHandle, filenameStem, exportPath)
+    global params
+    if ~exist(exportPath,'dir'), mkdir(exportPath); end
+    fullP = fullfile(exportPath, [filenameStem '.png']);
+    exportgraphics(figHandle, fullP, 'Resolution', params.exportRes);
+    close(figHandle);
+end
