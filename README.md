@@ -73,7 +73,7 @@ My_EBSD_Project/
 MAPClean is the first step in a modular three-stage pipeline for EBSD analysis.
 1. **MAPClean:** Pixel-level noise removal and data restoration. [Link to Repo]
 2. **GRaMC:** (This Repository) Grain reconstruction, twin merging, and inclusion removal.
-3. **GRaFT:** (Grain Reporting and Fabric Texture) Batch statistical analysis and texture quantification. [Link to Repo]
+3. **GRaFT:** (Grain-Resolved Fabric and Texture analysis) Batch statistical analysis and texture quantification. [Link to Repo]
 
 ## License
 This code is licensed under **GPL version 3**.
