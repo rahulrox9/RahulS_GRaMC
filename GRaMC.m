@@ -1,7 +1,10 @@
 %% GRaMC – Grain Reconstruction and Multi-stage Cleaning
 % =========================================================================
 % Description:
-%   GRaMC is an advanced microstructural restoration engine designed to work downstream of MAPClean. While standard reconstruction simply groups pixels by misorientation, GRaMC applies crystallographic and topological heuristics to repair "over-segmented" datasets (e.g., Plagioclase).
+%   GRaMC is an advanced microstructural restoration engine designed to work 
+%   downstream of MAPClean. While standard reconstruction simply groups 
+%   pixels by misorientation, GRaMC applies crystallographic and topological 
+%   heuristics to repair "over-segmented" datasets (e.g., Plagioclase).
 %
 %   Key Capabilities:
 %     1. Crystallographic Repair: Automatically detects and heals twin 
