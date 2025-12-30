@@ -1,6 +1,7 @@
 # GRaMC – Grain Reconstruction and Multi-stage Cleaning
 
 Heuristic Grain Reconstruction and Microstructural Restoration for EBSD
+
 **Note:** GRaMC is designed to be used in tandem with **MAPClean** (Microstructurally Adaptive Pixel-Level Cleaning), the primary software associated with Subbaraman et al. (in prep). While **MAPClean** handles pixel-level noise removal and data restoration, **GRaMC** takes the clean output and handles **grain-level logic** to produce robust grain sets for analysis.
 
 It moves beyond standard MTEX grain reconstruction by incorporating microstructural logic specifically for complex geological materials (e.g., Plagioclase). It handles  twin boundary merging, fake inclusion removal, and matrix isolation to produce grains suitable for high-level shape and texture analysis.
