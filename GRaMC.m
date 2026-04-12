@@ -26,6 +26,7 @@
 %   - MTEX Toolbox (tested on v 6.0.0)
 %
 % Author: Rahul Subbaraman
+% Version 1.0: December 2025, 2.0: April 2026
 % =========================================================================
 
 clc; clear; close all;
