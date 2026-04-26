@@ -4,8 +4,8 @@
 
  **Note:** GRaMC is designed to be used in tandem with **MAPClean** (Microstructurally Adaptive Pixel-Level Cleaning), the primary software associated with Subbaraman et al. (in prep). While **MAPClean** handles pixel-level noise removal and data restoration, **GRaMC** takes the cleaned output and applies **grain-level reconstruction logic** to produce robust grain sets for analysis.
 
- This version moves beyond standard MTEX grain reconstruction by incorporating phase splitting, removal of zero-GOS grains, crystallographic twin merging, pixel-level reorientation of merged daughter grains, and optional area-based population filtering. It is designed for complex geological materials, especially twinned feldspars such as **Anorthite-rich Plagioclase**.
-
+ This version moves beyond standard MTEX grain reconstruction by incorporating phase splitting, removal of zero-GOS grains, crystallographic twin merging, pixel-level reorientation of merged daughter grains, and optional area-based population filtering. GRaMC automatically processes all indexed phases detected in each MAPClean output. Diopside and Forsterite phases receive initial grain reconstruction, size diagnostics, area filtering, and final export. Anorthite receives additional GOS = 0 cleanup, twin-boundary detection, twin merging, and pixel-level daughter-grain reorientation.
+ 
  ## Key Features
  * **Phase Splitting:** Automatically splits MAPClean outputs into phase-specific `.ctf` files so grain reconstruction can be performed on a single mineral population at a time.
  * **Multi-Stage Reconstruction:** Checkpointed workflow allowing users to inspect EBSD and grain objects at every major stage of reconstruction.
@@ -43,7 +43,7 @@
  ```
  3. Set any sample-specific `log10(area)` thresholds in the parameter section.
  4. Run the script.
- 5. Final output files (`*_finalGrains.mat`) are saved in the `checkpoints` directory, ready for downstream analysis (e.g., using **GRaFT**).
+ 5. Final outputs are saved as phase-wise `*_finalGrains.mat` checkpoints and cleaned phase-specific `.ctf` files, e.g. `<sampleName>_Anorthite_finalGrains.mat` and `<sampleName>_Anorthite_clean.ctf`.
 
  ## Workflow Details
  1. **Phase Splitting:** The full MAPClean output is split into phase-specific EBSD maps. GRaMC then loads the target phase (currently configured for **Anorthite**) for grain reconstruction.
@@ -63,6 +63,7 @@
  | `binsPerDecade` | `10` | Number of histogram bins between `10^x` and `10^(x+1)` for the grain-size diagnostic plots. |
  | `logAreaThresh(sample)` | user-defined | Sample-specific `log10(area)` threshold used for final area-based grain filtering. |
  | `exportRes` | `300 dpi` | Resolution for exported PNG maps. |
+ | `logAreaThresh(sample_phase)` | user-defined | Sample-phase-specific `log10(area)` threshold used for final area-based grain filtering. Keys must follow `<sampleName>_<phaseName>`|
 
  ## Directory Structure
  To ensure data flows automatically between stages, your folder should look like this:
